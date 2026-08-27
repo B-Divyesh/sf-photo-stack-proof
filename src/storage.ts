@@ -1,4 +1,5 @@
 import type { AnalysisReport } from './types'
+import { validateReport } from './report-validation'
 
 const DB_NAME = 'photo-stack-proof'
 const DB_VERSION = 1
@@ -36,11 +37,12 @@ async function transact<T>(storeName: string, mode: IDBTransactionMode, action: 
 }
 
 export function saveCurrent(report: AnalysisReport): Promise<IDBValidKey> {
-  return transact('reports', 'readwrite', (store) => store.put(report, CURRENT_KEY))
+  return transact('reports', 'readwrite', (store) => store.put(validateReport(report), CURRENT_KEY))
 }
 
 export async function loadCurrent(): Promise<AnalysisReport | undefined> {
-  return transact('reports', 'readonly', (store) => store.get(CURRENT_KEY)) as Promise<AnalysisReport | undefined>
+  const stored = await transact('reports', 'readonly', (store) => store.get(CURRENT_KEY)) as unknown
+  return stored === undefined ? undefined : validateReport(stored)
 }
 
 export function clearCurrent(): Promise<undefined> {
@@ -48,13 +50,18 @@ export function clearCurrent(): Promise<undefined> {
 }
 
 export function saveSnapshot(name: string, report: AnalysisReport): Promise<IDBValidKey> {
-  const item: Snapshot = { id: crypto.randomUUID(), name, savedAt: new Date().toISOString(), report }
+  const item: Snapshot = { id: crypto.randomUUID(), name, savedAt: new Date().toISOString(), report: validateReport(report) }
   return transact('snapshots', 'readwrite', (store) => store.put(item))
 }
 
 export async function loadSnapshots(): Promise<Snapshot[]> {
-  const snapshots = await transact('snapshots', 'readonly', (store) => store.getAll()) as Snapshot[]
-  return snapshots.sort((a, b) => b.savedAt.localeCompare(a.savedAt))
+  const snapshots = await transact('snapshots', 'readonly', (store) => store.getAll()) as Array<Partial<Snapshot>>
+  return snapshots.flatMap((snapshot) => {
+    try {
+      if (typeof snapshot.id !== 'string' || typeof snapshot.name !== 'string' || typeof snapshot.savedAt !== 'string') return []
+      return [{ id: snapshot.id, name: snapshot.name, savedAt: snapshot.savedAt, report: validateReport(snapshot.report) }]
+    } catch { return [] }
+  }).sort((a, b) => b.savedAt.localeCompare(a.savedAt))
 }
 
 export function deleteSnapshot(id: string): Promise<undefined> {

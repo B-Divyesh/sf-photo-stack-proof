@@ -4,6 +4,7 @@ import { downloadText, reportToCsv } from './export'
 import { buyUrl, captureReturnedLicense, initialLicenseState, removeLicense, storeLicense, verifyLicense, type LicenseState } from './license'
 import { privacyPage, termsPage } from './pages'
 import { clearAllData, clearCurrent, deleteSnapshot, loadCurrent, loadSnapshots, saveCurrent, saveSnapshot } from './storage'
+import { ReportValidationError, validateReport } from './report-validation'
 import type { AnalysisReport, ProofGroup, Verdict } from './types'
 
 const app = document.querySelector<HTMLDivElement>('#app')!
@@ -184,17 +185,19 @@ async function startAnalysis(files: File[]): Promise<void> {
   status.innerHTML = `<span class="spinner" aria-hidden="true"></span><strong>Reading evidence…</strong> <span id="progress-text">Preparing ${files.length.toLocaleString()} files</span>`
   byId('drop-zone').classList.add('working')
   try {
-    report = await analyzeFiles(files, (done, total) => {
+    const analyzed = await analyzeFiles(files, (done, total) => {
       const progress = document.querySelector('#progress-text')
       if (progress) progress.textContent = `${done.toLocaleString()} of ${total.toLocaleString()} candidate files`
     })
-    await saveCurrent(report)
-    if (!report.groups.length) {
-      status.innerHTML = `<strong>No candidate stacks found.</strong> ${report.ignoredSingletons.toLocaleString()} unique basename${report.ignoredSingletons === 1 ? '' : 's'} found. Choose a set with at least two files sharing a name before the extension.`
+    const validReport = validateReport(analyzed)
+    await saveCurrent(validReport)
+    report = validReport
+    if (!validReport.groups.length) {
+      status.innerHTML = `<strong>No candidate stacks found.</strong> ${validReport.ignoredSingletons.toLocaleString()} unique basename${validReport.ignoredSingletons === 1 ? '' : 's'} found. Choose a set with at least two files sharing a name before the extension.`
       byId('results').hidden = true
     } else {
-      status.textContent = `Inspection complete: ${report.candidateCount} candidate group${report.candidateCount === 1 ? '' : 's'} found.`
-      renderReport(report)
+      status.textContent = `Inspection complete: ${validReport.candidateCount} candidate group${validReport.candidateCount === 1 ? '' : 's'} found.`
+      renderReport(validReport)
       byId('results').scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', block: 'start' })
     }
   } catch (error) {
@@ -205,16 +208,17 @@ async function startAnalysis(files: File[]): Promise<void> {
 }
 
 function renderReport(value: AnalysisReport): void {
-  report = value
+  const validReport = validateReport(value)
+  report = validReport
   byId('results').hidden = false
-  byId('report-date').textContent = `Created ${new Date(value.createdAt).toLocaleString()}`
-  const counts = countVerdicts(value)
+  byId('report-date').textContent = `Created ${new Date(validReport.createdAt).toLocaleString()}`
+  const counts = countVerdicts(validReport)
   byId('stats').innerHTML = `
-    <div><span>${value.candidateCount}</span><small>candidate groups</small></div>
+    <div><span>${validReport.candidateCount}</span><small>candidate groups</small></div>
     <div class="danger-stat"><span>${counts.conflict}</span><small>conflicts</small></div>
     <div class="warning-stat"><span>${counts.ambiguous}</span><small>need review</small></div>
     <div class="success-stat"><span>${counts.verified}</span><small>verified</small></div>`
-  ;(['all', 'conflict', 'ambiguous', 'verified'] as const).forEach((key) => { byId(`count-${key}`).textContent = String(key === 'all' ? value.groups.length : counts[key]) })
+  ;(['all', 'conflict', 'ambiguous', 'verified'] as const).forEach((key) => { byId(`count-${key}`).textContent = String(key === 'all' ? validReport.groups.length : counts[key]) })
   renderGroups()
 }
 
@@ -299,15 +303,14 @@ async function importReport(file?: File): Promise<void> {
   if (!file) return
   const status = byId('analysis-status')
   try {
-    const candidate = JSON.parse(await file.text()) as Partial<AnalysisReport>
-    if (candidate.version !== 1 || !Array.isArray(candidate.groups) || typeof candidate.createdAt !== 'string') throw new Error('This is not a Photo Stack Proof v1 report.')
-    report = candidate as AnalysisReport
-    await saveCurrent(report)
-    renderReport(report)
+    const candidate = validateReport(JSON.parse(await file.text()))
+    await saveCurrent(candidate)
+    renderReport(candidate)
     status.textContent = `Imported ${file.name}. This displays saved evidence; choose the originals to re-read metadata.`
     byId('results').scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth' })
   } catch (error) {
-    status.innerHTML = `<strong>Report import failed.</strong> ${escapeHtml(error instanceof Error ? error.message : 'Choose a JSON report exported by Photo Stack Proof.')}`
+    const message = error instanceof ReportValidationError ? error.message : 'Choose a JSON report exported by Photo Stack Proof.'
+    status.innerHTML = `<strong>Report import failed.</strong> ${escapeHtml(message)} Your existing local report is still available.`
   }
 }
 
@@ -318,12 +321,18 @@ function filename(extension: string): string {
 async function restoreCurrentReport(): Promise<void> {
   try {
     const stored = await loadCurrent()
-    if (stored?.version === 1 && stored.groups.length) {
+    if (stored?.groups.length) {
       report = stored
       renderReport(stored)
       byId('analysis-status').textContent = 'Restored your latest local report. Choose files again to re-read the originals.'
     }
-  } catch { /* Private browsing may disable IndexedDB; analysis still works. */ }
+  } catch (error) {
+    if (error instanceof ReportValidationError) {
+      await clearCurrent().catch(() => undefined)
+      byId('analysis-status').textContent = 'A saved local report was incomplete and was removed. Your original files are safe; choose files or import an exported report to recover.'
+    }
+    /* Private browsing may disable IndexedDB; analysis still works. */
+  }
 }
 
 function resetPicker(): void {

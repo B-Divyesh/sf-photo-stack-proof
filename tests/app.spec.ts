@@ -31,6 +31,28 @@ test('analyzes matching local sidecars and exports the review CSV', async ({ pag
   expect((await download).suggestedFilename()).toMatch(/photo-stack-proof-.*\.csv/)
 })
 
+test('rejects the exact malformed v1-shaped import without replacing a good report across reload', async ({ page }) => {
+  await page.goto('/')
+  await page.locator('#file-input').setInputFiles([
+    { name: 'IMG_0042.xmp', mimeType: 'application/xml', buffer: Buffer.from('<x:ContentIdentifier>95E80A17-5BF2-4055-8464-DF40C0CE9434</x:ContentIdentifier>') },
+    { name: 'IMG_0042.json', mimeType: 'application/json', buffer: Buffer.from('{"ContentIdentifier":"95E80A17-5BF2-4055-8464-DF40C0CE9434"}') },
+  ])
+  await expect(page.locator('.proof-group.verified')).toHaveCount(1)
+
+  await page.locator('#report-input').setInputFiles({
+    name: 'broken-v1-report.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from('{"version":1,"createdAt":"not-a-date","groups":[{}]}'),
+  })
+  await expect(page.locator('#analysis-status')).toContainText('Report import failed.')
+  await expect(page.locator('#analysis-status')).toContainText('Your existing local report is still available.')
+  await expect(page.locator('.proof-group.verified')).toHaveCount(1)
+
+  await page.reload()
+  await expect(page.locator('#analysis-status')).toContainText('Restored your latest local report.')
+  await expect(page.locator('.proof-group.verified')).toHaveCount(1)
+})
+
 test('works offline after the shell is cached', async ({ page, context }) => {
   await page.goto('/')
   await page.evaluate(() => navigator.serviceWorker.ready)

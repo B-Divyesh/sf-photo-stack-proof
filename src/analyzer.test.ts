@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { analyzeFiles, basenameOf, classifyGroup, extractTextEvidence } from './analyzer'
 import { reportToCsv } from './export'
+import { ReportValidationError, validateReport } from './report-validation'
 import type { FileEvidence } from './types'
 
 function evidence(name: string, ids: FileEvidence['ids'] = [], capturedAt?: string): FileEvidence {
@@ -78,5 +79,30 @@ describe('CSV export', () => {
     const csv = reportToCsv({ version: 1, createdAt: new Date(0).toISOString(), fileCount: 2, candidateCount: 1, ignoredSingletons: 0, groups: [group] })
     expect(csv).toContain('"a,b"')
     expect(csv.split('\r\n')).toHaveLength(3)
+  })
+})
+
+describe('imported report validation', () => {
+  function validReport() {
+    const group = classifyGroup('proof', [
+      evidence('proof.xmp', [{ kind: 'ContentIdentifier', value: 'same-proof-id-12345' }]),
+      evidence('proof.json', [{ kind: 'ContentIdentifier', value: 'same-proof-id-12345' }]),
+    ])
+    return { version: 1 as const, createdAt: new Date(0).toISOString(), fileCount: 2, candidateCount: 1, ignoredSingletons: 0, groups: [group] }
+  }
+
+  it('accepts the complete v1 report shape exported by the app', () => {
+    expect(validateReport(validReport())).toEqual(validReport())
+  })
+
+  it('rejects the QA malformed v1-shaped report before it can be rendered or stored', () => {
+    expect(() => validateReport({ version: 1, createdAt: 'not-a-date', groups: [{}] })).toThrow(ReportValidationError)
+  })
+
+  it('rejects partial nested evidence even if report counters look plausible', () => {
+    const report = validReport()
+    report.groups[0].files[0].warnings = ['safe']
+    delete (report.groups[0].files[0] as Partial<FileEvidence>).mediaType
+    expect(() => validateReport(report)).toThrow('mediaType is required')
   })
 })
