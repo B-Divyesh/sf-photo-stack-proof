@@ -47,9 +47,11 @@ npm run test:e2e
 ```
 
 The exact production build command is `npm run build`. Static output lands in
-`dist/`, with `dist/index.html` at its root. Deploy `dist/` with SPA fallback to
-`index.html`; the included service worker provides offline navigation after the
-first successful load.
+`dist/`, with `dist/index.html` at its root. Deploy `dist/` to Azure Static Web
+Apps Standard; `staticwebapp.config.json` provides SPA fallback, immutable
+caching for Vite’s hashed assets, CSP, permissions and clickjacking policies,
+and the `application/manifest+json` manifest type. The included service worker
+provides offline navigation after the first successful load.
 
 The browser suite covers both desktop and a 390 px mobile viewport.
 

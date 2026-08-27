@@ -25,10 +25,12 @@ Completed and deployed: 2026-08-27
   revalidated (`no-cache, max-age=0, must-revalidate`); `/assets/*` gets
   `public, max-age=31536000, immutable`. It also sets CSP, a restrictive
   Permissions Policy, `X-Frame-Options: DENY`, `nosniff`, referrer policy, and
-  `application/manifest+json` for `.webmanifest`.
-- Bumped the hand-written service-worker cache namespace to `psp-v4`, preserving
+  `application/manifest+json` for `.webmanifest`. The unhashed product image is
+  outside `/assets/`, so the immutable rule applies only to Vite hashed files.
+- Bumped the hand-written service-worker cache namespace to `psp-v5`, preserving
   the existing local-only analysis, precache/offline fallback, update toast, and
-  PWA behavior.
+  PWA behavior. Its offline stylesheet is external so the strict CSP remains
+  effective on the fallback page.
 
 ## Run and verify
 

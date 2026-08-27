@@ -1,7 +1,7 @@
-const VERSION = 'psp-v4'
+const VERSION = 'psp-v5'
 const SHELL = `${VERSION}-shell`
 const ASSETS = `${VERSION}-assets`
-const SHELL_FILES = ['/', '/index.html', '/offline.html', '/manifest.webmanifest', '/favicon.svg', '/icon-192.png', '/icon-512.png', '/assets/proof-geometry-640.webp', '/assets/proof-geometry.webp']
+const SHELL_FILES = ['/', '/index.html', '/offline.html', '/offline.css', '/manifest.webmanifest', '/favicon.svg', '/icon-192.png', '/icon-512.png', '/media/proof-geometry-640.webp', '/media/proof-geometry.webp']
 let lastNetworkFailed = false
 
 self.addEventListener('install', (event) => {

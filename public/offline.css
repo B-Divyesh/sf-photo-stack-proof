@@ -1,0 +1,4 @@
+body { margin: 0; background: #f4f0e6; color: #17231e; font: 18px/1.55 system-ui; padding: 10vh 8vw; }
+main { max-width: 38rem; }
+a { color: #005d4b; }
+a:focus { outline: 3px solid #3159c9; outline-offset: 4px; }

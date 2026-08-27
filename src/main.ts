@@ -53,7 +53,7 @@ function renderHome(): void {
           <p class="privacy-line"><span aria-hidden="true">◈</span> Metadata stays in this browser. Files are never changed.</p>
         </div>
         <figure class="hero-art">
-          <img src="/assets/proof-geometry.webp" srcset="/assets/proof-geometry-640.webp 640w, /assets/proof-geometry.webp 1280w" sizes="(max-width: 820px) 90vw, 52vw" alt="Four archival photo plates connected by an evidence thread, with one plate deliberately misaligned" width="1280" height="853" fetchpriority="high" decoding="async">
+          <img src="/media/proof-geometry.webp" srcset="/media/proof-geometry-640.webp 640w, /media/proof-geometry.webp 1280w" sizes="(max-width: 820px) 90vw, 52vw" alt="Four archival photo plates connected by an evidence thread, with one plate deliberately misaligned" width="1280" height="853" fetchpriority="high" decoding="async">
           <figcaption>One thread can prove a stack. A filename cannot.</figcaption>
         </figure>
       </section>
