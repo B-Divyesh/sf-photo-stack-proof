@@ -1,0 +1,8 @@
+{
+  "slug": "photo-stack-proof",
+  "title": "Photo Stack Proof",
+  "artifact_class": "pwa-offline",
+  "smallest_useful_product": "Local analyser that groups candidate pairs by basename, reads available capture/content IDs and timestamps, and labels each as verified, ambiguous, or conflict; exports a review CSV.",
+  "constraints": "Never delete or rename files; content-ID support varies by format; describe heuristic confidence honestly; keep potentially sensitive metadata on-device.",
+  "monetization": "one-time"
+}
