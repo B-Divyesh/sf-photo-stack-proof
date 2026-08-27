@@ -54,6 +54,26 @@
       "tsconfig_include"
     ],
     "2": [
+      "src_main",
+      "src_main_adddefinition",
+      "src_main_capitalize",
+      "src_main_countverdicts",
+      "src_main_creategroup",
+      "src_main_formatbytes",
+      "src_main_formatdate",
+      "src_main_licensestate",
+      "src_main_paintnetworkstate",
+      "src_main_registerserviceworker",
+      "src_main_renderhome",
+      "src_main_shortid",
+      "src_main_sitefooter",
+      "src_main_siteheader",
+      "src_main_updatenetworkstate",
+      "src_pages",
+      "src_pages_privacypage",
+      "src_pages_termspage"
+    ],
+    "3": [
       "axe_core_playwright",
       "lighthouse",
       "package_devdependencies",
@@ -69,23 +89,6 @@
       "typescript",
       "vite",
       "vitest"
-    ],
-    "3": [
-      "src_main",
-      "src_main_adddefinition",
-      "src_main_capitalize",
-      "src_main_countverdicts",
-      "src_main_creategroup",
-      "src_main_formatbytes",
-      "src_main_formatdate",
-      "src_main_licensestate",
-      "src_main_renderhome",
-      "src_main_shortid",
-      "src_main_sitefooter",
-      "src_main_siteheader",
-      "src_pages",
-      "src_pages_privacypage",
-      "src_pages_termspage"
     ],
     "4": [
       "exifr",
@@ -158,39 +161,33 @@
       "src_main_filename"
     ],
     "9": [
-      "src_main_paintnetworkstate",
-      "src_main_registerserviceworker",
-      "src_main_updatenetworkstate"
-    ],
-    "10": [
       "public_sw",
       "public_sw_shell_files"
     ],
-    "11": [
+    "10": [
       "playwright_config"
     ],
-    "12": [
+    "11": [
       "tests_app_spec"
     ],
-    "13": [
+    "12": [
       "vite_config"
     ]
   },
   "cohesion": {
     "0": 0.13756613756613756,
     "1": 0.09523809523809523,
-    "2": 0.13333333333333333,
-    "3": 0.21904761904761905,
+    "2": 0.1830065359477124,
+    "3": 0.13333333333333333,
     "4": 0.14285714285714285,
     "5": 0.25274725274725274,
     "6": 0.23076923076923078,
     "7": 0.36363636363636365,
     "8": 0.42857142857142855,
-    "9": 0.6666666666666666,
+    "9": 1.0,
     "10": 1.0,
     "11": 1.0,
-    "12": 1.0,
-    "13": 1.0
+    "12": 1.0
   },
   "gods": [
     {
@@ -214,8 +211,8 @@
       "degree": 8
     },
     {
-      "id": "src_main_startanalysis",
-      "label": "startAnalysis()",
+      "id": "src_storage_transact",
+      "label": "transact()",
       "degree": 8
     },
     {
@@ -224,8 +221,8 @@
       "degree": 8
     },
     {
-      "id": "src_storage_transact",
-      "label": "transact()",
+      "id": "src_main_startanalysis",
+      "label": "startAnalysis()",
       "degree": 8
     },
     {
@@ -239,12 +236,23 @@
       "degree": 7
     },
     {
-      "id": "src_main_importreport",
-      "label": "importReport()",
+      "id": "src_main_rendersnapshots",
+      "label": "renderSnapshots()",
       "degree": 7
     }
   ],
   "surprises": [
+    {
+      "source": "Snapshot",
+      "target": "AnalysisReport",
+      "source_files": [
+        "src/storage.ts",
+        "src/types.ts"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "references",
+      "why": "peripheral node `Snapshot` unexpectedly reaches hub `AnalysisReport`"
+    },
     {
       "source": "startAnalysis()",
       "target": "analyzeFiles()",
@@ -257,19 +265,8 @@
       "why": "bridges separate communities"
     },
     {
-      "source": "startAnalysis()",
-      "target": "saveCurrent()",
-      "source_files": [
-        "src/main.ts",
-        "src/storage.ts"
-      ],
-      "confidence": "EXTRACTED",
-      "relation": "calls",
-      "why": "bridges separate communities"
-    },
-    {
-      "source": "importReport()",
-      "target": "saveCurrent()",
+      "source": "clearReport()",
+      "target": "clearCurrent()",
       "source_files": [
         "src/main.ts",
         "src/storage.ts"
@@ -290,8 +287,8 @@
       "why": "bridges separate communities"
     },
     {
-      "source": "clearReport()",
-      "target": "clearCurrent()",
+      "source": "importReport()",
+      "target": "saveCurrent()",
       "source_files": [
         "src/main.ts",
         "src/storage.ts"
