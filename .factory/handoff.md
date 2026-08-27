@@ -1,122 +1,79 @@
-# Photo Stack Proof — verification handoff
+# Photo Stack Proof — repair handoff
 
-## Independent QA status: **FAIL**
+Work order: `photo-stack-proof-repair-1`
+Base QA report: `0fa3ae75f68a45d18c925bbc4a60b38bcc3b753b`
+Repaired candidate: `c699a38`
+Completed and deployed: 2026-08-27
 
-Candidate `15104a7248fd3db60ce866c2b6f85ce4bd6c2fe6` was independently tested
-from a clean checkout and compared to <https://photo-stack-proof.sociobot.in>
-on 2026-08-27. The live deployment is byte-identical to the candidate and its
-normal PWA flow passes, but release is blocked by two P2 defects:
+## What changed
 
-1. A malformed but v1-shaped JSON report is persisted before full validation;
-   it partially renders and remains broken after reload instead of recovering.
-2. Live hashed JS/CSS assets use `max-age=30` rather than long-lived immutable
-   caching required for this PWA.
+- Added a strict v1 report validator and apply it before every report can be
+  persisted or rendered: imported JSON, fresh analysis, current-report restore,
+  and named snapshots. It checks the complete nested report/group/file/ID shape,
+  ISO dates, safe counters, allowed enums, matching verdict confidence, and
+  report count invariants.
+- A failed import now leaves the current in-memory and IndexedDB report intact
+  and announces recovery. A legacy/corrupt stored current report is removed on
+  startup with an explicit safe-recovery message; original files are never
+  touched. Invalid snapshots are ignored rather than rendered.
+- Added exact regression coverage for the QA payload
+  `{"version":1,"createdAt":"not-a-date","groups":[{}]}`. It first creates
+  a good report, imports the malformed payload, proves the good report remains,
+  reloads, and proves the good report restores.
+- Added `public/staticwebapp.config.json`, copied to `dist/` by Vite, for the
+  Standard Azure Static Web Apps deployment. Documents and `/sw.js` are
+  revalidated (`no-cache, max-age=0, must-revalidate`); `/assets/*` gets
+  `public, max-age=31536000, immutable`. It also sets CSP, a restrictive
+  Permissions Policy, `X-Frame-Options: DENY`, `nosniff`, referrer policy, and
+  `application/manifest+json` for `.webmanifest`.
+- Bumped the hand-written service-worker cache namespace to `psp-v4`, preserving
+  the existing local-only analysis, precache/offline fallback, update toast, and
+  PWA behavior.
 
-There is also P3 response-policy hardening work (no CSP, Permissions Policy or
-clickjacking policy; manifest served as octet-stream). Exact reproduction,
-headers, test results, bundle/Lighthouse metrics, PWA update/offline evidence,
-and deployment hashes are in `.factory/verification.md`.
-
-To verify the candidate locally: `npm ci && npm test && npm run build && npx
-playwright install --with-deps chromium && npm run test:e2e`. Do not release
-until the P2 issues are corrected and independently retested.
-
----
-
-# Original build handoff
-
-Work order: `photo-stack-proof-build-1`
-Completed: 2026-08-27
-
-## What shipped
-
-- A production Vite + TypeScript PWA that inspects user-selected files entirely
-  in the browser; nothing is uploaded, renamed, moved, or deleted.
-- Case-insensitive basename grouping for photos, RAWs, videos, XMP/AAE/JSON
-  sidecars, with singletons counted separately.
-- EXIF/XMP extraction for images, text/XMP extraction for sidecars, and bounded
-  head/tail scanning for QuickTime/MP4 content identifiers so large videos are
-  not loaded into memory in full.
-- Conservative verdicts:
-  - **verified** only when at least two files share the same supported strong ID;
-  - **conflict** when the same ID field disagrees, or supported capture times are
-    over two hours apart without shared strong evidence;
-  - **ambiguous** for timestamp-only agreement or insufficient evidence.
-- Expandable evidence rows, conflict-first sorting, verdict filters, readable
-  reason text, progress/error/empty/restored/offline states, and free CSV + JSON
-  export/import.
-- IndexedDB persistence for the latest report. No photo bytes are stored.
-- Installable offline PWA with manifest, 192/512/maskable icons, versioned app
-  shell caching, offline navigation fallback, offline state messaging, and an
-  update-available toast.
-- $19 one-time Proof Archive upgrade through the Sociobot billing endpoint:
-  checkout link, return-token capture, daily cached verification, optimistic
-  cached offline access, license paste/restore, and locally stored named audit
-  snapshots. No product ID or payment provider is embedded. Core analysis and
-  both exports remain free.
-- `/privacy` and `/terms`, MIT license, complete README, sitemap, robots file,
-  and a product-specific design/provenance record.
-- Original generative-geometry hero, generated with the factory Azure image
-  deployment and reviewed for brands/text/artifacts. Sources and prompt sidecars
-  are in `assets/src/`; responsive WebP outputs are 26 KB and 88 KB.
-
-## Verification
-
-Run from a clean dependency install:
+## Run and verify
 
 ```sh
 npm ci
 npm test
 npm run build
+npx playwright install --with-deps chromium
 npm run test:e2e
 ```
 
-Results on 2026-08-27:
+Results from this repair:
 
-- `npm test`: 8/8 unit tests passed. Covers basename normalization, strong-ID
-  verification, mismatching IDs, timestamp-only ambiguity, far-time conflict,
-  XMP parsing, end-to-end sidecar analysis, and CSV escaping.
-- `npm run build`: passed; `dist/index.html` exists at the deploy root.
-- Playwright: 12/12 passed across Desktop Chrome and a 390×844 mobile viewport.
-  Covers no console/page errors, semantics, axe, local analysis + CSV export,
-  offline reload, no horizontal overflow, privacy route, and mocked paid-license
-  return/verification/storage.
-- Axe via Playwright: no serious or critical violations on the home and privacy
-  routes in either viewport.
-- Offline: explicitly loaded once, waited for service-worker control, disabled
-  the browser network, and reloaded the complete workbench successfully with the
-  visible offline state.
-- Lighthouse mobile against the production build:
-  - Performance: **100**
-  - Accessibility: **100**
-  - Best practices: **100**
-  - SEO: **100**
-  - LCP: **1.5 s**; FCP: **1.1 s**; TBT: **0 ms**; CLS: **0**
-- Production assets: initial JS 102.04 KB (36.25 KB gzip), CSS 15.26 KB
-  (4.42 KB gzip), mobile hero 26 KB. These are inside the 200/50/300 KB budgets.
+- Clean `npm ci`: passed, 0 vulnerabilities.
+- `npm test`: **13/13** passed. This includes complete-shape validation,
+  malformed nested evidence, and static-hosting policy assertions.
+- `npm run build`: passed; `dist/` contains `index.html` and
+  `staticwebapp.config.json`. Initial JS is 105.91 KB raw / 37.52 KB gzip;
+  CSS is 15.26 KB raw / 4.42 KB gzip.
+- `npm run test:e2e`: **14/14** passed across desktop and 390 px mobile,
+  including the exact malformed-import/reload case, local sidecar analysis,
+  CSV export, offline reload, accessibility/axe smoke checks, and license flow.
+- Live Lighthouse mobile at <https://photo-stack-proof.sociobot.in>: Performance
+  **100**, Accessibility **100**, Best Practices **100**, SEO **100**; LCP 1.7 s,
+  CLS 0, TBT 0 ms.
+- Live header checks confirm the emitted hashed JS has
+  `Cache-Control: public, max-age=31536000, immutable`; HTML and manifest have
+  no-cache; the manifest is `application/manifest+json`; CSP, Permissions
+  Policy, `X-Frame-Options: DENY`, and `nosniff` are present. Live `sw.js`
+  reports `psp-v4`.
 
-## Known limits
+## Deployment
 
-- Browser metadata support varies by format and camera implementation. In
-  particular, proprietary RAW structures and nonstandard video metadata may
-  yield “ambiguous”; this is the intended safe fallback.
-- Video scanning reads the first 4 MB and last 8 MB, where QuickTime metadata is
-  normally stored. A nonstandard identifier elsewhere in a very large file may
-  not be found.
-- The classifier has deterministic rule tests, but the brief’s 100-group,
-  camera-diverse labelled validation corpus was not supplied. Before broad
-  claims about recall, test against real exports from multiple iPhone, camera,
-  and editing-app versions. The invariant that timestamps alone never verify is
-  enforced and tested.
-- Checkout creation itself depends on the factory registering the product at
-  the production Sociobot endpoint. The client contract and a valid mocked
-  verification response are tested; no live purchase was made in this build.
+Deployed as a **Standard Azure Static Web App** with
+`/opt/fleet/lib/deploy-static.sh photo-stack-proof /work/repo/dist`.
+The custom domain returned HTTP 200 after deployment and the live bundle hash
+is `index-DGj4nWYt.js`.
 
-## Suggested next steps
+## Known limits / next steps
 
-1. Assemble the 100-group labelled fixture corpus described in the brief and
-   publish per-format precision/recall results.
-2. Add parsers only for formats that appear as false negatives in that corpus;
-   do not weaken the shared-ID verification rule.
-3. Register `photo-stack-proof` in the Sociobot billing system and run a staging
-   checkout/refund/revocation pass before release.
+- Metadata availability still varies by camera, RAW/video format, and editor;
+  missing evidence correctly remains ambiguous. The bounded video scan reads
+  the first 4 MB and last 8 MB only.
+- A real, camera-diverse labelled 100-group corpus is still needed before
+  claiming broad format recall. Add format parsers only when that corpus finds
+  safe, evidenced false negatives.
+- The optional checkout itself remains dependent on the factory’s Sociobot
+  product registration; no live purchase was made in this repair.
