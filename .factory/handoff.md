@@ -1,4 +1,29 @@
-# Photo Stack Proof — build handoff
+# Photo Stack Proof — verification handoff
+
+## Independent QA status: **FAIL**
+
+Candidate `15104a7248fd3db60ce866c2b6f85ce4bd6c2fe6` was independently tested
+from a clean checkout and compared to <https://photo-stack-proof.sociobot.in>
+on 2026-08-27. The live deployment is byte-identical to the candidate and its
+normal PWA flow passes, but release is blocked by two P2 defects:
+
+1. A malformed but v1-shaped JSON report is persisted before full validation;
+   it partially renders and remains broken after reload instead of recovering.
+2. Live hashed JS/CSS assets use `max-age=30` rather than long-lived immutable
+   caching required for this PWA.
+
+There is also P3 response-policy hardening work (no CSP, Permissions Policy or
+clickjacking policy; manifest served as octet-stream). Exact reproduction,
+headers, test results, bundle/Lighthouse metrics, PWA update/offline evidence,
+and deployment hashes are in `.factory/verification.md`.
+
+To verify the candidate locally: `npm ci && npm test && npm run build && npx
+playwright install --with-deps chromium && npm run test:e2e`. Do not release
+until the P2 issues are corrected and independently retested.
+
+---
+
+# Original build handoff
 
 Work order: `photo-stack-proof-build-1`
 Completed: 2026-08-27
