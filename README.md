@@ -39,12 +39,19 @@ npm run build
 npm run preview
 ```
 
+For the browser, offline, mobile, and accessibility suite:
+
+```sh
+npx playwright install chromium
+npm run test:e2e
+```
+
 The exact production build command is `npm run build`. Static output lands in
 `dist/`, with `dist/index.html` at its root. Deploy `dist/` with SPA fallback to
 `index.html`; the included service worker provides offline navigation after the
 first successful load.
 
-Optional browser smoke tests are documented in `.factory/handoff.md`.
+The browser suite covers both desktop and a 390 px mobile viewport.
 
 ## Classification rules
 

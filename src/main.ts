@@ -8,12 +8,16 @@ import type { AnalysisReport, ProofGroup, Verdict } from './types'
 
 const app = document.querySelector<HTMLDivElement>('#app')!
 const currentPath = location.pathname.replace(/\/$/, '') || '/'
+let report: AnalysisReport | undefined
+let activeFilter: Verdict | 'all' = 'all'
+let licenseState: LicenseState = { unlocked: false, checking: false }
 
 if (currentPath === '/privacy' || currentPath === '/terms') {
   app.innerHTML = `${siteHeader(false)}${currentPath === '/privacy' ? privacyPage() : termsPage()}${siteFooter()}`
   registerServiceWorker()
 } else {
   captureReturnedLicense()
+  licenseState = initialLicenseState()
   renderHome()
 }
 
@@ -48,7 +52,7 @@ function renderHome(): void {
           <p class="privacy-line"><span aria-hidden="true">◈</span> Metadata stays in this browser. Files are never changed.</p>
         </div>
         <figure class="hero-art">
-          <img src="/assets/proof-geometry.webp" alt="Four archival photo plates connected by an evidence thread, with one plate deliberately misaligned" width="1280" height="853" fetchpriority="high" decoding="async">
+          <img src="/assets/proof-geometry.webp" srcset="/assets/proof-geometry-640.webp 640w, /assets/proof-geometry.webp 1280w" sizes="(max-width: 820px) 90vw, 52vw" alt="Four archival photo plates connected by an evidence thread, with one plate deliberately misaligned" width="1280" height="853" fetchpriority="high" decoding="async">
           <figcaption>One thread can prove a stack. A filename cannot.</figcaption>
         </figure>
       </section>
@@ -66,11 +70,11 @@ function renderHome(): void {
           </div>
           <div class="picker-actions">
             <button class="button primary" id="choose-folder" type="button">Choose a folder</button>
-            <input class="visually-hidden" id="folder-input" type="file" webkitdirectory multiple>
+            <input class="visually-hidden" id="folder-input" type="file" webkitdirectory multiple tabindex="-1" aria-label="Choose a folder to inspect">
             <button class="button secondary" id="choose-files" type="button">Choose files</button>
-            <input class="visually-hidden" id="file-input" type="file" multiple>
+            <input class="visually-hidden" id="file-input" type="file" multiple tabindex="-1" aria-label="Choose files to inspect">
             <button class="import-link" id="choose-report" type="button">Import prior JSON report</button>
-            <input class="visually-hidden" id="report-input" type="file" accept="application/json,.json">
+            <input class="visually-hidden" id="report-input" type="file" accept="application/json,.json" tabindex="-1" aria-label="Import a prior JSON report">
           </div>
           <p class="drop-note">or drop files here</p>
         </div>
@@ -137,10 +141,6 @@ function renderHome(): void {
 
   bindHome()
 }
-
-let report: AnalysisReport | undefined
-let activeFilter: Verdict | 'all' = 'all'
-let licenseState: LicenseState = initialLicenseState()
 
 function bindHome(): void {
   const dropZone = byId('drop-zone')
@@ -236,7 +236,7 @@ function renderGroups(): void {
 function createGroup(group: ProofGroup, index: number): HTMLElement {
   const details = document.createElement('details')
   details.className = `proof-group ${group.verdict}`
-  if (index === 0 && group.verdict === 'conflict') details.open = true
+  if (index === 0) details.open = true
   const summary = document.createElement('summary')
   summary.innerHTML = `<span class="status-icon ${group.verdict}" aria-hidden="true"></span><span class="group-name"></span><span class="file-count">${group.files.length} files</span><span class="verdict-label">${capitalize(group.verdict)}</span><span class="chevron" aria-hidden="true">⌄</span>`
   summary.querySelector<HTMLElement>('.group-name')!.textContent = group.basename
@@ -408,13 +408,21 @@ async function renderSnapshots(): Promise<void> {
 }
 
 function updateNetworkState(): void {
+  paintNetworkState(!navigator.onLine)
+}
+
+function paintNetworkState(offline: boolean): void {
   const node = document.querySelector('#network-state')
-  if (node) node.textContent = navigator.onLine ? 'On-device' : 'Offline · on-device'
+  if (node) node.textContent = offline ? 'Offline · on-device' : 'On-device'
 }
 
 function registerServiceWorker(): void {
   if (!('serviceWorker' in navigator)) return
+  navigator.serviceWorker.addEventListener('message', (event) => {
+    if (event.data?.type === 'NETWORK_STATUS') paintNetworkState(Boolean(event.data.offline))
+  })
   navigator.serviceWorker.register('/sw.js').then((registration) => {
+    navigator.serviceWorker.ready.then(() => navigator.serviceWorker.controller?.postMessage({ type: 'NETWORK_STATUS' }))
     registration.addEventListener('updatefound', () => {
       const worker = registration.installing
       worker?.addEventListener('statechange', () => {

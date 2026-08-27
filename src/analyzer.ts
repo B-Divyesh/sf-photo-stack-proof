@@ -190,6 +190,7 @@ export async function analyzeFiles(files: File[], onProgress?: (done: number, to
     buckets.set(base, bucket)
   }
   const candidates = [...buckets.entries()].filter(([, bucket]) => bucket.length > 1)
+  const candidateFileCount = candidates.reduce((sum, [, item]) => sum + item.length, 0)
   const groups: ProofGroup[] = []
   let done = 0
   for (const [basename, bucket] of candidates) {
@@ -197,7 +198,7 @@ export async function analyzeFiles(files: File[], onProgress?: (done: number, to
     for (const file of bucket) {
       evidence.push(await inspectFile(file))
       done += 1
-      onProgress?.(done, candidates.reduce((sum, [, item]) => sum + item.length, 0))
+      onProgress?.(done, candidateFileCount)
     }
     groups.push(classifyGroup(basename, evidence))
   }
