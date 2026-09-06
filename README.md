@@ -11,6 +11,8 @@ timestamps alone are not proof.
 
 Live product: <https://photo-stack-proof.sociobot.in>
 
+Try the isolated sample: <https://photo-stack-proof.sociobot.in/demo>
+
 ## Who it is for
 
 iPhone/Live Photo, RAW, and mixed-library photographers who want a portable
@@ -31,6 +33,11 @@ Open the shown local URL, then choose a folder or several files. Analysis runs
 inside the browser. The current report is saved in local IndexedDB and can be
 exported as CSV or JSON.
 
+Choose **Try it with sample data** for an immediate report with one verified,
+one ambiguous, and one conflict group. Demo reports use a separate IndexedDB
+database and never read or change the normal report. See
+[`.factory/demo.md`](.factory/demo.md) for the sample and reset behavior.
+
 ## Test and build
 
 ```sh
@@ -46,6 +53,14 @@ npx playwright install chromium
 npm run test:e2e
 ```
 
+Every public product claim is declared in
+[`.factory/claims.json`](.factory/claims.json). Run one claim from a clean
+checkout with its listed command, for example:
+
+```sh
+npm run test:claim -- --grep @claim:offline-reload
+```
+
 The exact production build command is `npm run build`. Static output lands in
 `dist/`, with `dist/index.html` at its root. Deploy `dist/` to Azure Static Web
 Apps Standard; `staticwebapp.config.json` provides SPA fallback, immutable
@@ -54,6 +69,12 @@ and the `application/manifest+json` manifest type. The included service worker
 provides offline navigation after the first successful load.
 
 The browser suite covers both desktop and a 390 px mobile viewport.
+
+The checked-in camera corpus includes an iPhone JPEG, Canon CR2/DNG,
+Panasonic RW2, and QuickTime MOV test vectors. It verifies 100 labelled
+basename collisions: 90 conflicts and 10 verified groups. The MOV vector
+itself has no compatible strong identifier or capture time. Details and
+provenance are in [`tests/fixtures/camera-corpus/README.md`](tests/fixtures/camera-corpus/README.md).
 
 ## Classification rules
 
@@ -78,6 +99,8 @@ backup and manually review conflicts before changing a photo library.
 
 - Product brief: [`.factory/brief.json`](.factory/brief.json)
 - Visual system and asset provenance: [`.factory/design.md`](.factory/design.md)
+- Demo sandbox: [`.factory/demo.md`](.factory/demo.md)
+- Claim checks: [`.factory/claims.json`](.factory/claims.json)
 - Build/verification handoff: [`.factory/handoff.md`](.factory/handoff.md)
 
 Licensed under the MIT License.

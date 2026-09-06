@@ -1,0 +1,1 @@
+Verify same-name photo files before a DAM stacks or deletes them.

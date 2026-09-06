@@ -3,71 +3,102 @@ import { analyzeFiles } from './analyzer'
 import { downloadText, reportToCsv } from './export'
 import { buyUrl, captureReturnedLicense, initialLicenseState, removeLicense, storeLicense, verifyLicense, type LicenseState } from './license'
 import { privacyPage, termsPage } from './pages'
-import { clearAllData, clearCurrent, deleteSnapshot, loadCurrent, loadSnapshots, saveCurrent, saveSnapshot } from './storage'
+import { sampleFiles } from './sample'
+import { clearAllData, clearCurrent, deleteSnapshot, loadCurrent, loadSnapshots, saveCurrent, saveSnapshot, setStorageScope } from './storage'
 import { ReportValidationError, validateReport } from './report-validation'
 import type { AnalysisReport, ProofGroup, Verdict } from './types'
 
 const app = document.querySelector<HTMLDivElement>('#app')!
 const currentPath = location.pathname.replace(/\/$/, '') || '/'
+const isDemo = currentPath === '/demo' || new URLSearchParams(location.search).get('demo') === '1'
+const BUILD_ID = 'v1.1.0'
 let report: AnalysisReport | undefined
 let activeFilter: Verdict | 'all' = 'all'
 let licenseState: LicenseState = { unlocked: false, checking: false }
 
+setStorageScope(isDemo ? 'demo' : 'real')
+
 if (currentPath === '/privacy' || currentPath === '/terms') {
-  app.innerHTML = `${siteHeader(false)}${currentPath === '/privacy' ? privacyPage() : termsPage()}${siteFooter()}`
+  setPageMetadata(currentPath === '/privacy' ? 'privacy' : 'terms')
+  app.innerHTML = `${siteHeader()}${currentPath === '/privacy' ? privacyPage() : termsPage()}${siteFooter()}`
+  registerServiceWorker()
+} else if (currentPath !== '/' && !isDemo) {
+  setPageMetadata('not-found')
+  renderNotFound()
   registerServiceWorker()
 } else {
-  captureReturnedLicense()
-  licenseState = initialLicenseState()
+  setPageMetadata(isDemo ? 'demo' : 'home')
+  if (!isDemo) {
+    captureReturnedLicense()
+    licenseState = initialLicenseState()
+  }
   renderHome()
 }
 
-function siteHeader(withNav = true): string {
+function setPageMetadata(page: 'home' | 'demo' | 'privacy' | 'terms' | 'not-found'): void {
+  const details = {
+    home: { title: 'Photo Stack Proof — verify photo stacks', description: 'Check same-name photo files before a DAM groups or deletes them.', path: '/' },
+    demo: { title: 'Demo — Photo Stack Proof', description: 'Try a local sample report with verified, ambiguous, and conflict groups.', path: '/demo' },
+    privacy: { title: 'Privacy — Photo Stack Proof', description: 'Learn what Photo Stack Proof stores locally and what never leaves your device.', path: '/privacy' },
+    terms: { title: 'Terms — Photo Stack Proof', description: 'Read the Photo Stack Proof terms, one-time price, and license rules.', path: '/terms' },
+    'not-found': { title: 'Page not found — Photo Stack Proof', description: 'Return to Photo Stack Proof to inspect same-name photo files.', path: '/404' },
+  }[page]
+  document.title = details.title
+  document.querySelector<HTMLMetaElement>('meta[name="description"]')?.setAttribute('content', details.description)
+  document.querySelector<HTMLLinkElement>('link[rel="canonical"]')?.setAttribute('href', `https://photo-stack-proof.sociobot.in${details.path}`)
+  document.querySelector<HTMLMetaElement>('meta[property="og:title"]')?.setAttribute('content', details.title)
+  document.querySelector<HTMLMetaElement>('meta[property="og:description"]')?.setAttribute('content', details.description)
+  document.querySelector<HTMLMetaElement>('meta[property="og:url"]')?.setAttribute('content', `https://photo-stack-proof.sociobot.in${details.path}`)
+  document.querySelector<HTMLMetaElement>('meta[name="twitter:title"]')?.setAttribute('content', details.title)
+  document.querySelector<HTMLMetaElement>('meta[name="twitter:description"]')?.setAttribute('content', details.description)
+}
+
+function siteHeader(): string {
   return `<header class="site-header">
     <a class="brand" href="/" aria-label="Photo Stack Proof home">
       <svg aria-hidden="true" viewBox="0 0 48 48"><path d="M8 14h25v21H8zM14 8h26v21H14z"/><path d="M4 24h40"/><circle cx="24" cy="24" r="4"/></svg>
       <span>Photo Stack Proof</span>
     </a>
-    ${withNav ? `<nav aria-label="Main navigation"><a href="#how">Method</a><a href="#pricing">Proof Archive</a></nav>` : ''}
+    <nav aria-label="Main navigation"><a href="/demo">Demo</a><a href="/#how">How it works</a><a href="/#pricing">Proof Archive</a><a href="/privacy">Privacy</a></nav>
     <span class="network-state" id="network-state" role="status">${navigator.onLine ? 'On-device' : 'Offline · on-device'}</span>
   </header>`
 }
 
 function siteFooter(): string {
   return `<footer class="site-footer">
-    <div><strong>Photo Stack Proof</strong><p>Evidence before automation. Nothing is uploaded.</p></div>
+    <div><strong>Photo Stack Proof</strong><p>Check same-name files before a DAM groups them.</p></div>
     <nav aria-label="Legal"><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="https://github.com/B-Divyesh/sf-photo-stack-proof">Source</a></nav>
-    <p class="art-credit">Abstract hero generated for this product · © 2026 Param Factory</p>
+    <p class="art-credit">Built by Param Factory · Build ${BUILD_ID} · Abstract illustration generated for this product.</p>
   </footer>`
 }
 
 function renderHome(): void {
   app.innerHTML = `${siteHeader()}
+    ${isDemo ? `<aside class="demo-banner" aria-label="Demo mode"><strong>Demo — sample data, nothing is saved to your real report.</strong><button class="text-button" id="reset-demo" type="button">Reset demo</button><a href="/" data-start-real>Start for real</a></aside>` : ''}
     <main id="main">
       <section class="hero" aria-labelledby="hero-title">
         <div class="hero-copy">
-          <p class="eyebrow"><span></span> A local evidence bench</p>
-          <h1 id="hero-title">Same name.<br><em>Prove</em> the stack.</h1>
-          <p class="hero-lede">Check whether photos, videos, RAWs, and sidecars really belong together—before a DAM stacks them or a cleanup removes the wrong original.</p>
-          <a class="button primary" href="#workbench">Choose files to inspect <span aria-hidden="true">↓</span></a>
-          <p class="privacy-line"><span aria-hidden="true">◈</span> Metadata stays in this browser. Files are never changed.</p>
+          <p class="eyebrow"><span></span> ${isDemo ? 'Sample report' : 'Local file check'}</p>
+          <h1 id="hero-title">${isDemo ? 'Review sample photo stacks' : 'Verify photo stacks before importing'}</h1>
+          <p class="hero-lede">${isDemo ? 'This sample shows a verified pair, a conflict, and a group that needs review.' : 'For photographers checking iPhone, RAW, and export folders before a DAM groups same-name files.'}</p>
+          ${isDemo ? `<a class="button primary" href="#results">View the sample report <span aria-hidden="true">↓</span></a>` : `<div class="hero-actions"><a class="button primary" href="/demo">Try it with sample data</a><a class="button secondary" href="#workbench">Choose files</a></div><p class="action-note">The sample opens a three-group report immediately.</p><ul class="hero-facts"><li>Files stay on this device.</li><li>Works offline after the first visit.</li><li>$19 one-time Proof Archive; the analyzer is free.</li></ul>`}
         </div>
         <figure class="hero-art">
           <img src="/media/proof-geometry.webp" srcset="/media/proof-geometry-640.webp 640w, /media/proof-geometry.webp 1280w" sizes="(max-width: 820px) 90vw, 52vw" alt="Four archival photo plates connected by an evidence thread, with one plate deliberately misaligned" width="1280" height="853" fetchpriority="high" decoding="async">
-          <figcaption>One thread can prove a stack. A filename cannot.</figcaption>
+          <figcaption>A matching identifier connects files. A filename alone does not.</figcaption>
         </figure>
       </section>
 
       <section class="workbench-section" id="workbench" aria-labelledby="workbench-title">
         <div class="section-heading">
-          <div><p class="step">01 / Inspect</p><h2 id="workbench-title">Open a folder or file set</h2></div>
+          <div><p class="step">01 / Inspect</p><h2 id="workbench-title">Choose files to inspect</h2></div>
           <p>Best for exported folders containing same-basename pairs like <code>IMG_0421.HEIC</code> + <code>IMG_0421.MOV</code>.</p>
         </div>
         <div class="drop-zone" id="drop-zone">
           <div class="stack-mark" aria-hidden="true"><i></i><i></i><i></i><b></b></div>
           <div>
-            <h3>Bring the candidate files to the bench</h3>
-            <p>Photos, RAWs, videos, XMP, AAE, or JSON sidecars. Read-only.</p>
+            <h3>Choose candidate files</h3>
+            <p>Photos, RAW files, videos, XMP, AAE, or JSON sidecars. The app only reads them.</p>
           </div>
           <div class="picker-actions">
             <button class="button primary" id="choose-folder" type="button">Choose a folder</button>
@@ -104,12 +135,12 @@ function renderHome(): void {
         <div id="group-list" class="group-list"></div>
         <div class="report-footer-actions">
           <button class="text-button" id="new-analysis" type="button">Inspect a different set</button>
-          <button class="text-button danger-text" id="clear-report" type="button">Clear this local report</button>
+          <button class="text-button danger-text" id="clear-report" type="button">${isDemo ? 'Clear this demo report' : 'Clear this local report'}</button>
         </div>
       </section>
 
       <section class="method" id="how" aria-labelledby="method-title">
-        <div class="section-heading"><div><p class="step">The proof rule</p><h2 id="method-title">Conservative by design</h2></div><p>A portable preflight, not another automatic stacker.</p></div>
+        <div class="section-heading"><div><p class="step">How it works</p><h2 id="method-title">Check evidence before stacking</h2></div><p>This is a preflight check, not an automatic stacker.</p></div>
         <ol class="method-grid">
           <li><span>1</span><h3>Group by basename</h3><p>Same-name files become candidates, not assumed matches. Singletons are counted and set aside.</p></li>
           <li><span>2</span><h3>Read local evidence</h3><p>Supported EXIF, XMP, and QuickTime identifiers and capture times are read in your browser.</p></li>
@@ -118,29 +149,39 @@ function renderHome(): void {
         <aside class="limits"><strong>Honest limitation</strong><p>Formats and camera apps expose different metadata. Missing evidence means “ambiguous”—never a guess. Always keep a backup before changing a library.</p></aside>
       </section>
 
-      <section class="pricing" id="pricing" aria-labelledby="pricing-title">
-        <div class="pricing-copy"><p class="step">One careful upgrade</p><h2 id="pricing-title">Keep a migration paper trail.</h2><p>The analyzer and CSV/JSON exports are free. Proof Archive adds named, on-device snapshots so you can compare preflights across a long migration.</p></div>
-        <div class="price-card">
-          <div><span class="price">$19</span><span>one time</span></div>
-          <ul><li>Unlimited named audit snapshots</li><li>Stored only on this device</li><li>Restore on another device with your license</li></ul>
-          <a class="button primary buy-link" href="${buyUrl}">Buy Proof Archive</a>
-          <button class="text-button" type="button" id="restore-toggle">Have a license? Restore it</button>
-          <form id="license-form" class="license-form" hidden>
-            <label for="license-token">License token</label>
-            <div><input id="license-token" name="license" autocomplete="off" required><button class="button secondary" type="submit">Verify license</button></div>
-          </form>
-          <p id="license-status" class="license-status" role="status" aria-live="polite"></p>
-        </div>
-        <div class="archive" id="archive" hidden>
-          <div class="archive-head"><h3>Proof Archive</h3><button class="button secondary" type="button" id="save-snapshot">Save current report</button></div>
-          <div id="snapshot-list"></div>
-        </div>
-      </section>
+      ${pricingSection()}
     </main>
     <div class="toast" id="update-toast" role="status" hidden>Update available. <button type="button">Reload</button></div>
     ${siteFooter()}`
 
   bindHome()
+}
+
+function pricingSection(): string {
+  if (isDemo) {
+    return `<section class="pricing" id="pricing" aria-labelledby="pricing-title">
+      <div class="pricing-copy"><p class="step">Proof Archive</p><h2 id="pricing-title">Save named report snapshots</h2><p>The sample stays separate from your own report. Start for real to use the free analyzer or buy the paid archive.</p></div>
+      <div class="price-card"><div><span class="price">$19</span><span>one time</span></div><ul><li>Named report snapshots</li><li>Stored on your device</li><li>Restore with a license</li></ul><a class="button primary" href="/" data-start-real>Start for real</a></div>
+    </section>`
+  }
+  return `<section class="pricing" id="pricing" aria-labelledby="pricing-title">
+    <div class="pricing-copy"><p class="step">Proof Archive</p><h2 id="pricing-title">Save named report snapshots</h2><p>The analyzer and CSV or JSON exports are free. Proof Archive stores named reports on this device.</p></div>
+    <div class="price-card">
+      <div><span class="price">$19</span><span>one time</span></div>
+      <ul><li>Unlimited named report snapshots</li><li>Stored only on this device</li><li>Restore on another device with your license</li></ul>
+      <a class="button primary buy-link" href="${buyUrl}">Buy Proof Archive</a>
+      <button class="text-button" type="button" id="restore-toggle">Have a license? Restore it</button>
+      <form id="license-form" class="license-form" hidden>
+        <label for="license-token">License token</label>
+        <div><input id="license-token" name="license" autocomplete="off" required><button class="button secondary" type="submit">Verify license</button></div>
+      </form>
+      <p id="license-status" class="license-status" role="status" aria-live="polite"></p>
+    </div>
+    <div class="archive" id="archive" hidden>
+      <div class="archive-head"><h3>Proof Archive</h3><button class="button secondary" type="button" id="save-snapshot">Save current report</button></div>
+      <div id="snapshot-list"></div>
+    </div>
+  </section>`
 }
 
 function bindHome(): void {
@@ -165,18 +206,56 @@ function bindHome(): void {
   byId('export-json').addEventListener('click', exportJson)
   byId('new-analysis').addEventListener('click', resetPicker)
   byId('clear-report').addEventListener('click', clearReport)
-  byId('restore-toggle').addEventListener('click', () => {
-    const form = byId<HTMLFormElement>('license-form')
-    form.hidden = !form.hidden
-    if (!form.hidden) byId<HTMLInputElement>('license-token').focus()
-  })
-  byId<HTMLFormElement>('license-form').addEventListener('submit', restoreLicense)
-  byId('save-snapshot').addEventListener('click', saveCurrentSnapshot)
+  if (isDemo) {
+    byId('reset-demo').addEventListener('click', resetDemo)
+    document.querySelectorAll<HTMLAnchorElement>('[data-start-real]').forEach((link) => link.addEventListener('click', startForReal))
+  } else {
+    byId('restore-toggle').addEventListener('click', () => {
+      const form = byId<HTMLFormElement>('license-form')
+      form.hidden = !form.hidden
+      if (!form.hidden) byId<HTMLInputElement>('license-token').focus()
+    })
+    byId<HTMLFormElement>('license-form').addEventListener('submit', restoreLicense)
+    byId('save-snapshot').addEventListener('click', saveCurrentSnapshot)
+  }
   window.addEventListener('online', updateNetworkState)
   window.addEventListener('offline', updateNetworkState)
-  restoreCurrentReport()
-  refreshLicense()
+  if (isDemo) void restoreDemoReport()
+  else {
+    void restoreCurrentReport()
+    void refreshLicense()
+  }
   registerServiceWorker()
+}
+
+async function restoreDemoReport(): Promise<void> {
+  try {
+    const stored = await loadCurrent()
+    if (stored?.groups.length) {
+      report = stored
+      renderReport(stored)
+      byId('analysis-status').textContent = 'Sample report ready: 3 candidate groups show verified, conflict, and review results.'
+      byId('results').scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', block: 'start' })
+      return
+    }
+  } catch {
+    // A private browser can refuse IndexedDB. The sample can still be analyzed.
+  }
+  await startAnalysis(sampleFiles())
+}
+
+async function resetDemo(): Promise<void> {
+  report = undefined
+  activeFilter = 'all'
+  byId('results').hidden = true
+  await clearCurrent().catch(() => undefined)
+  await startAnalysis(sampleFiles())
+}
+
+async function startForReal(event: MouseEvent): Promise<void> {
+  event.preventDefault()
+  await clearAllData().catch(() => undefined)
+  location.assign('/')
 }
 
 async function startAnalysis(files: File[]): Promise<void> {
@@ -265,6 +344,7 @@ function createGroup(group: ProofGroup, index: number): HTMLElement {
     addDefinition(dl, 'Kind', `${file.mediaType} · ${formatBytes(file.size)}`)
     addDefinition(dl, 'Strong ID', file.ids.length ? file.ids.map((id) => `${id.kind}: ${shortId(id.value)}`).join('\n') : 'Not found')
     addDefinition(dl, 'Captured', file.capturedAt ? `${formatDate(file.capturedAt)} (${file.timestampSource})` : 'Not found')
+    if (file.warnings.length) addDefinition(dl, 'Read notes', file.warnings.join('\n'))
     item.append(title, path, dl)
     files.append(item)
   }
@@ -344,11 +424,11 @@ function resetPicker(): void {
 }
 
 async function clearReport(): Promise<void> {
-  if (!confirm('Clear this report from this browser? Your original files will not be touched.')) return
+  if (!isDemo && !confirm('Clear this report from this browser? Your original files will not be touched.')) return
   report = undefined
   await clearCurrent().catch(() => undefined)
   byId('results').hidden = true
-  byId('analysis-status').textContent = 'Local report cleared. Your original files were not changed.'
+  byId('analysis-status').textContent = isDemo ? 'Demo report cleared. Your real report was not changed.' : 'Local report cleared. Your original files were not changed.'
   byId('workbench').scrollIntoView({ behavior: 'auto' })
 }
 
@@ -455,6 +535,17 @@ function formatBytes(bytes: number): string { if (bytes < 1024) return `${bytes}
 function shortId(value: string): string { return value.length > 28 ? `${value.slice(0, 13)}…${value.slice(-10)}` : value }
 function escapeHtml(value: string): string { const div = document.createElement('div'); div.textContent = value; return div.innerHTML }
 function prefersReducedMotion(): boolean { return matchMedia('(prefers-reduced-motion: reduce)').matches }
+
+function renderNotFound(): void {
+  app.innerHTML = `${siteHeader()}
+    <main id="main" class="not-found-shell">
+      <p class="step">404</p>
+      <h1>Page not found</h1>
+      <p>This address does not lead to a Photo Stack Proof page.</p>
+      <a class="button primary" href="/">Open Photo Stack Proof</a>
+    </main>
+    ${siteFooter()}`
+}
 
 // Exposed only for the privacy page's browser-data affordance in future versions.
 void clearAllData

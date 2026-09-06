@@ -1,0 +1,21 @@
+:root { color-scheme: light dark; --paper: #f4f0e6; --ink: #17231e; --muted: #52645b; --proof: #006a55; --line: #c5cec4; --cobalt: #3159c9; font: 16px/1.55 system-ui, sans-serif; }
+* { box-sizing: border-box; }
+body { min-width: 320px; margin: 0; background: var(--paper); color: var(--ink); }
+a { color: var(--proof); text-underline-offset: 3px; }
+:focus-visible { outline: 3px solid var(--cobalt); outline-offset: 4px; }
+header, footer, main { max-width: 1180px; margin: 0 auto; padding-inline: 32px; }
+header { min-height: 72px; display: flex; align-items: center; border-bottom: 1px solid var(--line); }
+header a { min-height: 44px; display: inline-flex; align-items: center; gap: 8px; color: var(--ink); font-weight: 750; text-decoration: none; }
+header span { color: var(--proof); font-size: 25px; }
+main { min-height: 62vh; padding-top: 112px; padding-bottom: 100px; }
+.eyebrow { margin: 0 0 16px; color: var(--muted); font: 700 12px/1.4 ui-monospace, monospace; letter-spacing: .11em; }
+h1 { max-width: 14ch; margin: 0 0 20px; font-size: clamp(2.8rem, 7vw, 4.8rem); line-height: .98; letter-spacing: -.05em; }
+main > p:not(.eyebrow) { max-width: 48ch; margin: 0 0 28px; color: var(--muted); font-size: 20px; }
+.button { min-height: 48px; padding: 12px 18px; display: inline-flex; align-items: center; background: var(--proof); color: #fff; font-weight: 750; text-decoration: none; box-shadow: 5px 5px 0 var(--ink); }
+footer { padding-top: 40px; padding-bottom: max(48px, env(safe-area-inset-bottom)); border-top: 1px solid var(--line); color: var(--muted); }
+footer p { margin: 0 0 14px; }
+footer nav { display: flex; gap: 20px; }
+footer nav a { min-height: 44px; display: inline-flex; align-items: center; }
+footer small { display: block; margin-top: 12px; }
+@media (prefers-color-scheme: dark) { :root { --paper: #101714; --ink: #f5f1e7; --muted: #b7c6bd; --proof: #5ed6af; --line: #3c5046; --cobalt: #8ba6ff; } .button { color: #102019; box-shadow-color: #5ed6af; } }
+@media (max-width: 520px) { header, footer, main { padding-inline: 20px; } main { padding-top: 80px; } }

@@ -2,8 +2,10 @@ import type { AnalysisReport } from './types'
 import { validateReport } from './report-validation'
 
 const DB_NAME = 'photo-stack-proof'
+const DEMO_DB_NAME = 'photo-stack-proof-demo'
 const DB_VERSION = 1
 const CURRENT_KEY = 'current'
+let scope: 'real' | 'demo' = 'real'
 
 interface Snapshot {
   id: string
@@ -12,9 +14,21 @@ interface Snapshot {
   report: AnalysisReport
 }
 
+/**
+ * The demo deliberately uses a different database. Set this before any
+ * storage call; a demo tab must never even read the normal report database.
+ */
+export function setStorageScope(nextScope: 'real' | 'demo'): void {
+  scope = nextScope
+}
+
+function databaseName(): string {
+  return scope === 'demo' ? DEMO_DB_NAME : DB_NAME
+}
+
 function openDatabase(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, DB_VERSION)
+    const request = indexedDB.open(databaseName(), DB_VERSION)
     request.onupgradeneeded = () => {
       const db = request.result
       if (!db.objectStoreNames.contains('reports')) db.createObjectStore('reports')
@@ -70,7 +84,7 @@ export function deleteSnapshot(id: string): Promise<undefined> {
 
 export function clearAllData(): Promise<void> {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.deleteDatabase(DB_NAME)
+    const request = indexedDB.deleteDatabase(databaseName())
     request.onsuccess = () => resolve()
     request.onerror = () => reject(request.error)
     request.onblocked = () => reject(new Error('Close other Photo Stack Proof tabs and try again.'))

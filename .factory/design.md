@@ -73,9 +73,11 @@ so browser and installed-app safe areas are respected.
 
 ## Asset plan and provenance
 
-- `public/assets/proof-geometry.webp`: an original generated still-life of
+- `public/media/proof-geometry.webp`: an original generated still-life of
   abstract translucent photo planes and one continuous green identifier thread,
   used as the explanatory hero image (not a capability screenshot).
+- `public/media/social-card.jpg`: a 1200×630 centre crop of the same generated
+  still-life for Open Graph and Twitter sharing. It contains no required text.
 - App icons and status symbols are hand-authored SVG/geometric CSS, because
   precise simple interface marks should remain code-native.
 

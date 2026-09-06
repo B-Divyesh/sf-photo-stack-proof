@@ -1,4 +1,4 @@
-const VERSION = 'psp-v5'
+const VERSION = 'psp-v6'
 const SHELL = `${VERSION}-shell`
 const ASSETS = `${VERSION}-assets`
 const SHELL_FILES = ['/', '/index.html', '/offline.html', '/offline.css', '/manifest.webmanifest', '/favicon.svg', '/icon-192.png', '/icon-512.png', '/media/proof-geometry-640.webp', '/media/proof-geometry.webp']

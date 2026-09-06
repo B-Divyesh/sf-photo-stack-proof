@@ -1,0 +1,65 @@
+[
+  {
+    "id": "local-analysis",
+    "claim": "Reads available identifiers and capture times from selected local image, video, and sidecar files.",
+    "where": "Workbench and How it works",
+    "test": "npm run test:claim -- --grep @claim:local-analysis",
+    "sandbox": "Fresh browser context; select local image, video, and sidecar fixtures; observe their evidence and group verdicts."
+  },
+  {
+    "id": "classification",
+    "claim": "Labels candidate groups as verified, ambiguous, or conflict using available evidence.",
+    "where": "Demo and evidence report",
+    "test": "npm run test:claim -- --grep @claim:classification",
+    "sandbox": "Fresh /demo load; assert the realistic sample contains one visible group of each verdict."
+  },
+  {
+    "id": "selected-files-remain-unchanged",
+    "claim": "Never moves, renames, deletes, or changes selected files.",
+    "where": "Workbench, Privacy, and Terms",
+    "test": "npm run test:claim -- --grep @claim:selected-files-remain-unchanged",
+    "sandbox": "Select two temporary source files, run an analysis, then compare their on-disk bytes with the bytes before selection."
+  },
+  {
+    "id": "local-privacy",
+    "claim": "Files and report metadata stay on this device; normal analysis sends no cross-origin request.",
+    "where": "Landing facts, Privacy, and README",
+    "test": "npm run test:claim -- --grep @claim:local-privacy",
+    "sandbox": "Record every request for a fresh /demo analysis and CSV export; assert every HTTP request is same-origin."
+  },
+  {
+    "id": "exports",
+    "claim": "Exports the review as CSV and JSON.",
+    "where": "Evidence report and README",
+    "test": "npm run test:claim -- --grep @claim:exports",
+    "sandbox": "Fresh /demo load; download both formats and assert the CSV header/rows and JSON group count."
+  },
+  {
+    "id": "local-persistence",
+    "claim": "Restores the latest local report after a refresh.",
+    "where": "README and Privacy",
+    "test": "npm run test:claim -- --grep @claim:local-persistence",
+    "sandbox": "Analyze a fresh local fixture, reload, and assert the saved verified group returns."
+  },
+  {
+    "id": "offline-reload",
+    "claim": "Works offline after the first visit.",
+    "where": "Landing facts and README",
+    "test": "npm run test:claim -- --grep @claim:offline-reload",
+    "sandbox": "A dedicated fresh browser context loads the app, waits for its service worker, goes offline, then reloads the shell."
+  },
+  {
+    "id": "paid-archive",
+    "claim": "A valid Proof Archive license restores access to named local report snapshots.",
+    "where": "Proof Archive pricing and Terms",
+    "test": "npm run test:claim -- --grep @claim:paid-archive",
+    "sandbox": "Recorded valid license-verification response; restore a token, analyze fixtures, and save a named snapshot locally."
+  },
+  {
+    "id": "camera-corpus",
+    "claim": "The labelled iPhone, RAW, and QuickTime corpus separates 90 conflicts and 10 verified groups without an ambiguous or unsafe conflict result.",
+    "where": "README",
+    "test": "npm run test:claim -- --grep @claim:camera-corpus",
+    "sandbox": "Fresh browser analysis of 100 groups assembled from independently labelled iPhone JPEG, RAW, QuickTime, and sidecar fixtures."
+  }
+]
