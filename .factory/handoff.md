@@ -2,7 +2,7 @@
 
 - Work order: `photo-stack-proof-repair-2`
 - Implementation SHA: `35fb5b8f6dbe5c4f2fe2ef2ce01c00f3e9689c7c`
-- Documentation SHA: recorded in the follow-up handoff commit
+- Documentation SHA before the production note: `2b977c78eeec6945c22cc3d6e7d9f35ab6ea71a9`
 - Live URL: <https://photo-stack-proof.sociobot.in>
 - Prepared: 2026-09-06 UTC
 
@@ -94,10 +94,33 @@ billing-registration operator. The required offer metadata is written to
 paid features, verification path, and the unavailable-registration evidence.
 The free analyzer and exports remain fully functional.
 
+## Production deployment and cold check
+
+The implementation build was deployed directly to the owned Static Web App
+`sf-photo-stack-proof` without changing app settings, hostnames, or service
+configuration. The deployed document references
+`assets/index-DW2KVV7R.js`; its response changed at 2026-09-06 01:15 UTC.
+
+Fresh HTTPS desktop and 390 px phone browser contexts both confirmed:
+
+- HTTP 200 home page, no console or page errors, and only same-origin normal
+  demo requests.
+- The job, audience, and first action shown above before scrolling.
+- One-click sample output with exactly one verified, one ambiguous, and one
+  conflict group; the persistent demo label and Reset demo control were shown.
+- `/not-a-real-page` returned HTTP 404 with the designed not-found title and
+  heading.
+- After first load and service-worker activation, offline reload rendered the
+  home headline and `OFFLINE · ON-DEVICE` state.
+
+The live checkout endpoint was also rechecked after deployment and still
+returns HTTP 404. This confirms the remaining paid-path issue is external
+billing registration, not the deployed static client.
+
 ## Next steps
 
 1. The billing-registration operator must register/enable the existing
    `photo-stack-proof` one-time $19 offer and confirm checkout returns a hosted
    page before this paid path can be called complete.
-2. After deployment, perform the HTTPS cold desktop and phone checks recorded
-   below this handoff and keep the implementation/documentation SHA distinction.
+2. When the billing offer is registered, rerun the live checkout and
+   entitlement check without changing the free analyzer or paid deliverables.
