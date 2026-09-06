@@ -248,8 +248,8 @@
       "degree": 10
     },
     {
-      "id": "src_main_startanalysis",
-      "label": "startAnalysis()",
+      "id": "src_report_validation_fail",
+      "label": "fail()",
       "degree": 9
     },
     {
@@ -258,8 +258,8 @@
       "degree": 9
     },
     {
-      "id": "src_report_validation_fail",
-      "label": "fail()",
+      "id": "src_main_startanalysis",
+      "label": "startAnalysis()",
       "degree": 9
     },
     {
@@ -286,19 +286,8 @@
       "why": "bridges separate communities"
     },
     {
-      "source": "startAnalysis()",
-      "target": "validateReport()",
-      "source_files": [
-        "src/main.ts",
-        "src/report-validation.ts"
-      ],
-      "confidence": "EXTRACTED",
-      "relation": "calls",
-      "why": "bridges separate communities"
-    },
-    {
-      "source": "startAnalysis()",
-      "target": "saveCurrent()",
+      "source": "clearReport()",
+      "target": "clearCurrent()",
       "source_files": [
         "src/main.ts",
         "src/storage.ts"
@@ -308,7 +297,18 @@
       "why": "bridges separate communities"
     },
     {
-      "source": "renderReport()",
+      "source": "saveCurrentSnapshot()",
+      "target": "saveSnapshot()",
+      "source_files": [
+        "src/main.ts",
+        "src/storage.ts"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "calls",
+      "why": "bridges separate communities"
+    },
+    {
+      "source": "importReport()",
       "target": "validateReport()",
       "source_files": [
         "src/main.ts",
@@ -319,7 +319,7 @@
       "why": "bridges separate communities"
     },
     {
-      "source": "importReport()",
+      "source": "renderReport()",
       "target": "validateReport()",
       "source_files": [
         "src/main.ts",
