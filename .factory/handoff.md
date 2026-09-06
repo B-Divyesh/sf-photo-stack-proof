@@ -1,4 +1,44 @@
-# Photo Stack Proof — repair 2 handoff
+# Photo Stack Proof — verification 3 handoff
+
+- Work order: `photo-stack-proof-verify-3`
+- Verdict: **FAIL**
+- Findings: **7**
+- Untested public claim families: **1**
+- Implementation reviewed: `35fb5b8f6dbe5c4f2fe2ef2ce01c00f3e9689c7c`
+- Documentation reviewed: `585e201a8df56b104165937f07ccf4685021ced5`
+- Live URL: <https://photo-stack-proof.sociobot.in>
+
+Independent QA used a detached clean checkout and fresh live desktop and phone
+browsers. No product code changed. The full report is
+[`.factory/verification-3.md`](verification-3.md).
+
+The clean checkout passed `npm test` (14/14), `npm run build`, and
+`npm run test:e2e` (34/34). Every one of the nine declared claim commands also
+passed separately in desktop and phone projects. The live HTML, hashed
+JavaScript and CSS, service worker, and static 404 match the candidate build.
+
+The release is not accepted because:
+
+1. P1: the advertised checkout returns HTTP 404.
+2. P2: visiting a 404 overwrites the cached shell, so offline `/` becomes the
+   404 page.
+3. P2: dark mode has serious contrast failures as low as 1.18:1.
+4. P2: the $19/one-time/unlimited paid-offer claim family is not declared or
+   tested by the claim registry.
+5. P3: populated reports skip from `h2` to `h4`.
+6. P3: the static 404 lacks the required skip link and full site header.
+7. P3: the update **Reload** action is only 26.8 px high.
+
+Evidence is under `/work/.evidence/`, including fresh desktop/phone and dark
+screenshots, `live-browser-verify3.json`, `axe-dark.json`,
+`offline-after-404.json`, `update-check.json`, `text-resize-200.json`,
+`lighthouse-verify3.json`, and `verify-url/`.
+
+The material below is the prior repair handoff retained for implementation
+history. Its earlier “remaining blocker” statement is superseded by the
+verification findings above.
+
+## Prior repair 2 handoff
 
 - Work order: `photo-stack-proof-repair-2`
 - Implementation SHA: `35fb5b8f6dbe5c4f2fe2ef2ce01c00f3e9689c7c`
