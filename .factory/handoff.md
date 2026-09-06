@@ -1,19 +1,20 @@
-# Photo Stack Proof — verification handoff
+# Photo Stack Proof — review 1 handoff
 
-## PASS — release candidate verified
+## FAIL — nine findings remain
 
-- Work order: `photo-stack-proof-verify-2`
-- Tested commit: `1840591e53b1d12b2ba2ab434de3447f084561e6`
+- Work order: `photo-stack-proof-review-1`
+- Implementation reviewed: `8a781f013a8c0667fb81feff3c07e034a7c9ac89`
+- Documentation SHA reviewed: `dd83e254ff4a924cb5248c5735816ab0652f5c3c`
 - Live URL: <https://photo-stack-proof.sociobot.in>
-- Verification report: [`.factory/verification-2.md`](verification-2.md)
-- Verified: 2026-08-27
+- Full report: [`.factory/review-1.md`](review-1.md)
+- Reviewed: 2026-09-06 UTC
 
-The live deployment matches the rebuilt candidate: it references
-`index-D-rXpVMU.js` and `index-CW74brTa.css`; the referenced JS and `/sw.js`
-matched rebuilt files byte-for-byte. The previous malformed-import, immutable
-caching, manifest MIME, and security-header defects are resolved.
+No product code was changed. The review found 2 P1, 4 P2, and 3 P3 findings,
+plus 8 public claim families without the required claim declarations and tagged
+tests. The release blockers are the missing/unsafe demo and the live $19
+checkout returning HTTP 404.
 
-## How to run and verify
+## Verification performed
 
 ```sh
 npm ci
@@ -23,26 +24,26 @@ npx playwright install chromium
 npm run test:e2e
 ```
 
-Results: `npm test` **13/13**, production TypeScript/Vite build passed, and
-Playwright **14/14** passed across desktop and 390 px mobile. Independent QA
-also exercised matching sidecars, actual EXIF `ImageUniqueID`, timestamp-only
-ambiguity, ID and timestamp conflicts, CSV export, invalid-import recovery,
-IndexedDB restore, keyboard focus, reduced motion, service-worker update,
-cached offline reload, response policies, privacy/outbound requests, and live
-deployment identity.
+The clean checkout passed 13/13 unit tests, built `dist/`, and passed 14/14
+Playwright tests after installing the documented Chromium prerequisite. Live
+desktop and phone checks covered normal, invalid, boundary, persistence,
+clear/reset, keyboard, focus, reduced motion, axe, privacy traffic, offline
+reload, links, legal routes, and unknown routes. Lighthouse mobile scored
+100/100/100/100 with LCP 1.62 s, TBT 32 ms, and CLS 0.
 
-Build budgets pass: 105,910 B raw JS / 37.52 KB gzip, 15,256 B raw CSS / 4.42
-KB gzip, and 26,052 B mobile hero image. Live Lighthouse mobile: Performance
-99, Accessibility 100, Best Practices 96, SEO 100; LCP 1,504 ms, CLS 0, TBT
-120 ms. The Best Practices score reflects a post-audit Chromium crash warning;
-direct browser console/page-error monitoring was clean.
+The live HTML, CSS, JavaScript, and service worker are byte-identical to the
+rebuilt candidate. Prior malformed-import, caching, manifest MIME, and security
+header findings are resolved. The prior real camera-format corpus limit remains
+open.
 
-## Known limits / next steps
+## Required next work
 
-- Metadata availability varies across camera, RAW/video, and editor formats;
-  missing evidence correctly stays **ambiguous**. Video text scanning is bounded
-  to the first 4 MB and last 8 MB.
-- The synthetic 100-group collision corpus passed (90 conflicts, 10 verified),
-  but a camera-diverse independently labelled corpus is still needed before
-  claiming broad real-world format recall.
-- Checkout verification is mocked in the e2e suite; no live purchase was made.
+1. Add the isolated one-click demo, its persistent controls, and
+   `.factory/demo.md`; ensure `/demo` never reads or writes the normal namespace.
+2. Register/fix the Sociobot billing product so the live checkout succeeds.
+3. Add `.factory/claims.json` and one tagged sandbox test for every public
+   claim; add `.factory/copy-audit.md` and remove metaphor copy.
+4. Add a real 404, per-route titles, canonical/social metadata, compliant touch
+   targets, footer build identity, and visible parser-error guidance.
+5. Validate supported formats against an independently labelled camera-diverse
+   corpus before making broad format claims.
