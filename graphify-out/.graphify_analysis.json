@@ -25,7 +25,11 @@
       "src_analyzer_test_evidence",
       "src_analyzer_test_validreport",
       "src_analyzer_video_extensions",
+      "src_export",
+      "src_export_csvcell",
+      "src_export_reporttocsv",
       "src_types",
+      "src_types_analysisreport",
       "src_types_evidenceid",
       "src_types_fileevidence",
       "src_types_proofgroup",
@@ -55,6 +59,29 @@
       "tsconfig_include"
     ],
     "2": [
+      "src_main",
+      "src_main_adddefinition",
+      "src_main_capitalize",
+      "src_main_countverdicts",
+      "src_main_creategroup",
+      "src_main_formatbytes",
+      "src_main_formatdate",
+      "src_main_licensestate",
+      "src_main_paintnetworkstate",
+      "src_main_pricingsection",
+      "src_main_registerserviceworker",
+      "src_main_renderhome",
+      "src_main_rendernotfound",
+      "src_main_setpagemetadata",
+      "src_main_shortid",
+      "src_main_sitefooter",
+      "src_main_siteheader",
+      "src_main_updatenetworkstate",
+      "src_pages",
+      "src_pages_privacypage",
+      "src_pages_termspage"
+    ],
+    "3": [
       "src_report_validation",
       "src_report_validation_enumvalue",
       "src_report_validation_fail",
@@ -77,7 +104,26 @@
       "src_report_validation_validatereport",
       "src_report_validation_verdicts"
     ],
-    "3": [
+    "4": [
+      "src_main_bindhome",
+      "src_main_byid",
+      "src_main_clearreport",
+      "src_main_escapehtml",
+      "src_main_importreport",
+      "src_main_prefersreducedmotion",
+      "src_main_rendergroups",
+      "src_main_renderreport",
+      "src_main_rendersnapshots",
+      "src_main_resetdemo",
+      "src_main_resetpicker",
+      "src_main_restorecurrentreport",
+      "src_main_restoredemoreport",
+      "src_main_savecurrentsnapshot",
+      "src_main_setfilter",
+      "src_main_startanalysis",
+      "src_storage_clearcurrent"
+    ],
+    "5": [
       "axe_core_playwright",
       "lighthouse",
       "package_devdependencies",
@@ -94,7 +140,7 @@
       "vite",
       "vitest"
     ],
-    "4": [
+    "6": [
       "exifr",
       "package",
       "package_dependencies",
@@ -106,27 +152,12 @@
       "package_scripts_dev",
       "package_scripts_preview",
       "package_scripts_test",
+      "package_scripts_test_claim",
       "package_scripts_test_e2e",
       "package_type",
       "package_version"
     ],
-    "5": [
-      "src_main",
-      "src_main_adddefinition",
-      "src_main_capitalize",
-      "src_main_creategroup",
-      "src_main_formatbytes",
-      "src_main_formatdate",
-      "src_main_licensestate",
-      "src_main_renderhome",
-      "src_main_shortid",
-      "src_main_sitefooter",
-      "src_main_siteheader",
-      "src_pages",
-      "src_pages_privacypage",
-      "src_pages_termspage"
-    ],
-    "6": [
+    "7": [
       "src_license",
       "src_license_buyurl",
       "src_license_cachedverdict",
@@ -141,80 +172,63 @@
       "src_main_refreshlicense",
       "src_main_restorelicense"
     ],
-    "7": [
-      "src_main_byid",
-      "src_main_countverdicts",
-      "src_main_escapehtml",
-      "src_main_importreport",
-      "src_main_prefersreducedmotion",
-      "src_main_rendergroups",
-      "src_main_renderreport",
-      "src_main_rendersnapshots",
-      "src_main_resetpicker",
-      "src_main_restorecurrentreport",
-      "src_main_startanalysis"
-    ],
     "8": [
+      "src_main_startforreal",
       "src_storage",
       "src_storage_clearalldata",
-      "src_storage_clearcurrent",
+      "src_storage_databasename",
       "src_storage_deletesnapshot",
       "src_storage_loadcurrent",
       "src_storage_loadsnapshots",
       "src_storage_opendatabase",
       "src_storage_savecurrent",
       "src_storage_savesnapshot",
+      "src_storage_setstoragescope",
       "src_storage_snapshot",
       "src_storage_transact"
     ],
     "9": [
-      "src_export",
-      "src_export_csvcell",
       "src_export_downloadtext",
-      "src_export_reporttocsv",
       "src_main_exportcsv",
       "src_main_exportjson",
-      "src_main_filename",
-      "src_types_analysisreport"
+      "src_main_filename"
     ],
     "10": [
-      "src_main_bindhome",
-      "src_main_clearreport",
-      "src_main_paintnetworkstate",
-      "src_main_registerserviceworker",
-      "src_main_savecurrentsnapshot",
-      "src_main_setfilter",
-      "src_main_updatenetworkstate"
+      "test",
+      "tests_app_spec",
+      "tests_app_spec_analyzematchingfiles",
+      "tests_app_spec_matchingfiles"
     ],
     "11": [
       "public_sw",
       "public_sw_shell_files"
     ],
     "12": [
-      "playwright_config"
+      "src_sample",
+      "src_sample_samplefiles"
     ],
     "13": [
-      "src_static_policy_test"
+      "playwright_config"
     ],
     "14": [
-      "tests_app_spec"
+      "src_static_policy_test"
     ],
     "15": [
       "vite_config"
     ]
   },
   "cohesion": {
-    "0": 0.1354679802955665,
+    "0": 0.12121212121212122,
     "1": 0.09523809523809523,
-    "2": 0.22857142857142856,
-    "3": 0.13333333333333333,
-    "4": 0.14285714285714285,
-    "5": 0.24175824175824176,
-    "6": 0.23076923076923078,
-    "7": 0.32727272727272727,
-    "8": 0.3090909090909091,
-    "9": 0.35714285714285715,
-    "10": 0.3333333333333333,
+    "2": 0.1619047619047619,
+    "3": 0.22857142857142856,
+    "4": 0.2867647058823529,
+    "5": 0.13333333333333333,
+    "6": 0.13333333333333333,
+    "7": 0.23076923076923078,
+    "8": 0.2564102564102564,
+    "9": 0.6666666666666666,
+    "10": 0.6666666666666666,
     "11": 1.0,
     "12": 1.0,
     "13": 1.0,
@@ -225,7 +239,7 @@
     {
       "id": "src_main_bindhome",
       "label": "bindHome()",
-      "degree": 16
+      "degree": 19
     },
     {
       "id": "src_report_validation_validatereport",
@@ -240,11 +254,21 @@
     {
       "id": "src_main_byid",
       "label": "byId()",
-      "degree": 12
+      "degree": 14
+    },
+    {
+      "id": "src_main_startanalysis",
+      "label": "startAnalysis()",
+      "degree": 11
     },
     {
       "id": "src_report_validation_validatefile",
       "label": "validateFile()",
+      "degree": 10
+    },
+    {
+      "id": "src_main_renderreport",
+      "label": "renderReport()",
       "degree": 10
     },
     {
@@ -253,23 +277,13 @@
       "degree": 9
     },
     {
-      "id": "src_main_renderreport",
-      "label": "renderReport()",
-      "degree": 9
-    },
-    {
-      "id": "src_main_startanalysis",
-      "label": "startAnalysis()",
-      "degree": 9
-    },
-    {
       "id": "src_analyzer_inspectfile",
       "label": "inspectFile()",
       "degree": 8
     },
     {
-      "id": "src_main_importreport",
-      "label": "importReport()",
+      "id": "src_main_restoredemoreport",
+      "label": "restoreDemoReport()",
       "degree": 8
     }
   ],
@@ -280,28 +294,6 @@
       "source_files": [
         "src/main.ts",
         "src/analyzer.ts"
-      ],
-      "confidence": "EXTRACTED",
-      "relation": "calls",
-      "why": "bridges separate communities"
-    },
-    {
-      "source": "clearReport()",
-      "target": "clearCurrent()",
-      "source_files": [
-        "src/main.ts",
-        "src/storage.ts"
-      ],
-      "confidence": "EXTRACTED",
-      "relation": "calls",
-      "why": "bridges separate communities"
-    },
-    {
-      "source": "saveCurrentSnapshot()",
-      "target": "saveSnapshot()",
-      "source_files": [
-        "src/main.ts",
-        "src/storage.ts"
       ],
       "confidence": "EXTRACTED",
       "relation": "calls",
@@ -323,6 +315,28 @@
       "target": "validateReport()",
       "source_files": [
         "src/main.ts",
+        "src/report-validation.ts"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "calls",
+      "why": "bridges separate communities"
+    },
+    {
+      "source": "startAnalysis()",
+      "target": "validateReport()",
+      "source_files": [
+        "src/main.ts",
+        "src/report-validation.ts"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "calls",
+      "why": "bridges separate communities"
+    },
+    {
+      "source": "loadCurrent()",
+      "target": "validateReport()",
+      "source_files": [
+        "src/storage.ts",
         "src/report-validation.ts"
       ],
       "confidence": "EXTRACTED",
